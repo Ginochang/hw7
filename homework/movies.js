@@ -1,57 +1,131 @@
-window.addEventListener('DOMContentLoaded', async function(event) {
-  let db = firebase.firestore()
-  let apiKey = 'your TMDB API key'
-  let response = await fetch(`https://api.themoviedb.org/3/movie/now_playing?api_key=${apiKey}&language=en-US`)
+firebase.auth().onAuthStateChanged(async function(user){
+
+console.log('HI')
+console.log(user)
+  if(user){
+    document.querySelector('.sign-in-or-sign-out').innerHTML = `
+      <p class="text-white-500">Hello ${user.displayName}<p>
+      <button class="text-pink-500 underline sign-out">Sign Out</button>
+    `
+
+    document.querySelector('.sign-out').addEventListener('click', function(event) {
+      // console.log('sign out clicked')
+      firebase.auth().signOut()
+      document.location.href = 'movies.html'
+    })
+
+  let url = 'https://api.themoviedb.org/3/movie/now_playing?api_key=73ad26890b2d9c27d56568cdaca63f87&language=en-US'
+  let response = await fetch(url)
   let json = await response.json()
   let movies = json.results
   console.log(movies)
+  let db = firebase.firestore()
+  // ⬆️ ⬆️ ⬆️ 
+  // End Step 1
   
-  for (let i=0; i<movies.length; i++) {
-    let movie = movies[i]
-    let docRef = await db.collection('watched').doc(`${movie.id}`).get()
-    let watchedMovie = docRef.data()
-    let opacityClass = ''
-    if (watchedMovie) {
-      opacityClass = 'opacity-20'
+  // Step 2: 
+  // - Loop through the Array called movies and insert HTML
+  //   into the existing DOM element with the class name .movies
+  // - Include a "watched" button to click for each movie
+  // - Give each "movie" a unique class name based on its numeric
+  //   ID field.
+  // Some HTML that would look pretty good... replace with real values :)
+  // <div class="w-1/5 p-4 movie-abcdefg1234567">
+  //   <img src="https://image.tmdb.org/t/p/w500/moviePosterPath.jpg" class="w-full">
+  //   <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
+  // </div>
+  // ⬇️ ⬇️ ⬇️
+  let watchedMovie = await db.collection('watched').get()
+  let views = watchedMovie.docs
+  for (let i = 0; i < movies.length; i++) {
+    let opacity =''
+    for (let j=0; j<views.length; j++) {
+      if(views[j].id.localeCompare(`movie-${movies[i].id}`)==0){
+        opacity='opacity-20'
+        break;
+      }
     }
-
     document.querySelector('.movies').insertAdjacentHTML('beforeend', `
-      <div class="w-1/5 p-4 movie-${movie.id} ${opacityClass}">
-        <img src="https://image.tmdb.org/t/p/w500${movie.poster_path}" class="w-full">
+      <div class="w-1/5 p-4 movie-${movies[i].id}-${user.uid} ${opacity}">
+        <img src="https://image.tmdb.org/t/p/w500/${movies[i].poster_path}" class="w-full">
         <a href="#" class="watched-button block text-center text-white bg-green-500 mt-4 px-4 py-2 rounded">I've watched this!</a>
       </div>
-    `)
-
-    document.querySelector(`.movie-${movie.id}`).addEventListener('click', async function(event) {
-      event.preventDefault()
-      let movieElement = document.querySelector(`.movie-${movie.id}`)
-      movieElement.classList.add('opacity-20')
-      await db.collection('watched').doc(`${movie.id}`).set({})
-    }) 
+      `)
   }
+
+  // ⬆️ ⬆️ ⬆️ 
+  // End Step 2
+
+  // Step 3: 
+  // - Attach an event listener to each "watched button"
+  // - Be sure to prevent the default behavior of the button
+  // - When the "watched button" is clicked, changed the opacity
+  //   of the entire "movie" by using .classList.add('opacity-20')
+  // - When done, refresh the page... does the opacity stick?
+  // - Bonus challenge: add code to "un-watch" the movie by
+  //   using .classList.contains('opacity-20') to check if 
+  //   the movie is watched. Use .classList.remove('opacity-20')
+  //   to remove the class if the element already contains it.
+  // ⬇️ ⬇️ ⬇️
+  let filters = document.querySelectorAll(`[class*="movie-"]`)
+  
+    for (var i = 0, element; element = filters[i]; i++) {
+      
+      element.addEventListener('click',async function(event){
+        event.preventDefault()
+        // console.log(this.classList)
+        let movieId = ''
+        classList = this.className.split(' ')
+        for(var i = 0; i<classList.length ; i++){
+          if(classList[i].indexOf('movie-')>=0){
+            movieId = classList[i]
+          }
+        }
+        // console.log(event.target)
+        if(this.classList.contains('opacity-20')){
+          this.classList.remove('opacity-20')
+          db.collection('watched').doc(movieId).delete()
+        }else{
+          this.classList.add('opacity-20')
+          db.collection("watched").doc(movieId).set({
+          })
+        }
+        
+      })
+    }
+  } else {
+    let ui = new firebaseui.auth.AuthUI(firebase.auth())
+  
+    // FirebaseUI configuration
+    let authUIConfig = {
+      signInOptions: [
+        firebase.auth.EmailAuthProvider.PROVIDER_ID
+      ],
+      signInSuccessUrl: 'movies.html'
+    }
+
+    // Starts FirebaseUI Auth
+    ui.start('.sign-in-or-sign-out', authUIConfig)
+
+  }
+  // ⬆️ ⬆️ ⬆️ 
+  // End Step 3
+
+  // Step 4: 
+  // - Properly configure Firebase and Firebase Cloud Firestore
+  // - Inside your "watched button" event listener, you wrote in
+  //   step 3, after successfully setting opacity, persist data
+  //   for movies watched to Firebase.
+  // - The data could be stored in a variety of ways, but the 
+  //   easiest approach would be to use the TMDB movie ID as the
+  //   document ID in a "watched" Firestore collection.
+  // - Hint: you can use .set({}) to create a document with
+  //   no data – in this case, the document doesn't need any data;
+  //   if a TMDB movie ID is in the "watched" collection, the 
+  //   movie has been watched, otherwise it hasn't.
+  // - Modify the code you wrote in Step 2 to conditionally
+  //   make the movie opaque if it's already watched in the 
+  //   database.
+  // - Hint: you can use if (document) with no comparison
+  //   operator to test for the existence of an object.
 })
-
-// Goal:   Refactor the movies application from last week, so that it supports
-//         user login and each user can have their own watchlist.
-
-// Start:  Your starting point is one possible solution for last week's homework.
-
-// Step 1: Add your Firebase configuration to movies.html, along with the
-//         (provided) script tags for all necessary Firebase services – i.e. Firebase
-//         Auth, Firebase Cloud Firestore, and Firebase UI for Auth; also
-//         add the CSS file for FirebaseUI for Auth.
-// Step 2: Change the main event listener from DOMContentLoaded to 
-//         firebase.auth().onAuthStateChanged and include conditional logic 
-//         shows a login UI when signed, and the list of movies when signed
-//         in. Use the provided .sign-in-or-sign-out element to show the
-//         login UI. If a user is signed-in, display a message like "Signed 
-//         in as <name>" along with a link to "Sign out". Ensure that a document
-//         is set in the "users" collection for each user that signs in to 
-//         your application.
-// Step 3: Setting the TMDB movie ID as the document ID on your "watched" collection
-//         will no longer work. The document ID should now be a combination of the
-//         TMDB movie ID and the user ID indicating which user has watched. 
-//         This "composite" ID could simply be `${movieId}-${userId}`. This should 
-//         be set when the "I've watched" button on each movie is clicked. Likewise, 
-//         when the list of movies loads and is shown on the page, only the movies 
-//         watched by the currently logged-in user should be opaque.

@@ -18,24 +18,30 @@
   </div>
 
   <!-- Put the Firebase config here -->
-  <!-- The core Firebase JS SDK is always required and must be listed first -->
-  <script src="https://www.gstatic.com/firebasejs/8.2.7/firebase-app.js"></script>
+ <!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
 
-  <!-- TODO: Add SDKs for Firebase products that you want to use
-      https://firebase.google.com/docs/web/setup#available-libraries -->
-  <script src="https://www.gstatic.com/firebasejs/8.2.7/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.2.7/firebase-auth.js"></script>
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+     <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-auth.js"></script>
+     <script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-firestore.js"></script>
 
-  <!-- FirebaseUI Auth -->
-  <!-- https://firebaseopensource.com/projects/firebase/firebaseui-web/ -->
-  <script src="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.js"></script>
+    <!-- FirebaseUI Auth -->
+    <script src="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.js"></script>
 
-  <script>
-    // Your web app's Firebase configuration
-    var firebaseConfig = {}
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-  </script>
+    <script>
+      // Your web app's Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyCs1Ytdf2zMdf9qAGCME6Pd76jSp7_bESw",
+        authDomain: "tmdb-api-22e81.firebaseapp.com",
+        projectId: "tmdb-api-22e81",
+        storageBucket: "tmdb-api-22e81.appspot.com",
+        messagingSenderId: "348049348409",
+        appId: "1:348049348409:web:2df81b41fd3b8b8d6e7ae8"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
   <script src="movies.js"></script>
 </body>
 </html>
